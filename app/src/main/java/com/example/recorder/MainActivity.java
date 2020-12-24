@@ -5,6 +5,7 @@ import android.annotation.TargetApi;
 import android.app.*;
 import android.content.Context;
 import android.content.Intent;
+import android.content.SharedPreferences;
 import android.content.pm.PackageManager;
 import android.graphics.BitmapFactory;
 import android.media.AudioManager;
@@ -30,8 +31,6 @@ import java.util.List;
 public class MainActivity extends AppCompatActivity implements View.OnClickListener {
 
     public static final int UPDATE_LIST=1;
-    public static final int UPDATE_IMAGE_BUTTON=2;
-    public static final int UPDATE_TEST=3;
     private Button bt_est;
     private static ListView listView;
     private static ArrayAdapter<String> adapter;
@@ -44,7 +43,8 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
     //  private   File path = new File("/storage/sdcard0/MyRecodingFile");
     private   File path = new File("/data/data/com.example.recorder/cache/file/aaa");
     private  File testFile = new File("/storage/emulated/0/mtklog/file_tree.txt");
-    private  File mypath = FileManage.currentPath;
+  //  private  File mypath =new File(getSharedPreferences("pathData",MODE_PRIVATE).getString("currentPath","defValue"));
+   private  File mypath;
     private  static boolean isRecording;
     private   NotificationManager manager;
     private ImageButton bt2;
@@ -52,7 +52,7 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
 
 
     List<File> fileList = new ArrayList<File>();
-    File[] files = mypath.listFiles();
+    File[] files;
     ArrayList<String> fileList_string = new ArrayList<String>();
 
 
@@ -84,16 +84,12 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
     private  Handler handler =new Handler(){
         public  void handleMessage(Message msg){
             switch (msg.what){
-                case UPDATE_TEST:
-                    bt_est.setText("settings");
-                    break;
-                case UPDATE_IMAGE_BUTTON:
-
-                    break;
                 case UPDATE_LIST:
                     files = mypath.listFiles();
                     fileList_string.clear();
+                    fileList.clear();
                     for(File item:files){
+                        if(!item.isDirectory())
                         fileList.add(item);
                     }
                     for(File item:files){
@@ -113,7 +109,7 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
     @Override
     protected void onResume() {
         super.onResume();
-        mypath = FileManage.currentPath;
+        mypath = new File(getSharedPreferences("pathData",MODE_PRIVATE).getString("currentPath","defValue"));
         Message message = new Message();
         message.what=UPDATE_LIST;
         handler.sendMessage(message);
@@ -124,8 +120,14 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
-        mypath = FileManage.currentPath;
-
+        //第一次安装时默认根目录为存储路径，并写入到sharedPreferences
+        if (getSharedPreferences("pathData",MODE_PRIVATE).getString("currentPath","defValue").equals("defValue")) {
+            SharedPreferences.Editor editor = getSharedPreferences("pathData", MODE_PRIVATE).edit();
+            editor.putString("currentPath", "/storage/emulated/0");
+            editor.apply();
+        }
+        mypath = new File(getSharedPreferences("pathData",MODE_PRIVATE).getString("currentPath","defValue"));
+        files = mypath.listFiles();
 //        initPlayer();
 
 //        ActionBar actionBar = getSupportActionBar();
@@ -178,6 +180,7 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
         textView_hint=findViewById(R.id.textView4);
 
         for(File item:files){
+            if(!item.isDirectory())
             fileList.add(item);
         }
         for(File item:files){
@@ -190,15 +193,19 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
         adapter.notifyDataSetChanged();
         listView.setAdapter(adapter);
 
-
+//listView列表点击事件
         listView.setOnItemClickListener(new AdapterView.OnItemClickListener(){
             @Override
             public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
                 File fi = fileList.get(position);
 
+          if(fi.toString().endsWith(".mp3")){
                 MediaPlayer mp =new MediaPlayer();
                 initPlayer(mp,fi);
                 goPlayer(mp);
+            }else{
+                Toast.makeText(MainActivity.this,"不支持的文件格式",Toast.LENGTH_SHORT).show();
+            }
 //                Toast.makeText(MainActivity.this,fi.toString(),Toast.LENGTH_SHORT).show();
             }
         });
@@ -305,12 +312,14 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
                             .setWhen(System.currentTimeMillis())
                             .setSmallIcon(R.mipmap.ic_launcher)
                             .setLargeIcon(BitmapFactory.decodeResource(getResources(), R.mipmap.ic_launcher))
+                            .setAutoCancel(true)
                             .setContentIntent(pendingIntent)
                             //在build()方法之前还可以添加其他方法
                             .build();
                     manager.notify(1, notification);
                 }else{
-
+                    NotificationManager notificationManager = (NotificationManager) getSystemService(NOTIFICATION_SERVICE);
+                    notificationManager.cancel(1);
                 }
 
 
@@ -396,13 +405,15 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
 
     }
     public void initPlayer(MediaPlayer mediaPlayerNew,File file){
-        try {
-            mediaPlayerNew.setDataSource(file.toString());
-        } catch (IOException e) {
-            e.printStackTrace();
-        }
+            try {
+                mediaPlayerNew.setDataSource(file.toString());
+                Toast.makeText(this, file.toString(), Toast.LENGTH_SHORT).show();
+            } catch (IOException e) {
+                e.printStackTrace();
+            }
 
-        mediaPlayerNew.setAudioStreamType(AudioManager.STREAM_MUSIC);
+            mediaPlayerNew.setAudioStreamType(AudioManager.STREAM_MUSIC);
+
 
     }
     public void resetPlayer(){
@@ -423,7 +434,7 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
             public void onPrepared(MediaPlayer mp) {
                 // 装载完毕回调
                 mp.start();
-                Toast.makeText(MainActivity.this,"开始播放",Toast.LENGTH_SHORT).show();
+               // Toast.makeText(MainActivity.this,"开始播放",Toast.LENGTH_SHORT).show();
             }
         });
     }
@@ -473,10 +484,12 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
 
 //删除所有录音文件
     protected void deleteList(File file){
+
         File[] files = file.listFiles();
         for(File item:files){
 //            if(item.toString().equals("/storage/emulated/0/MyFolder/mymusic.mp3"))
 //                continue;
+            if(!item.isDirectory())
             item.delete();
         }
     }

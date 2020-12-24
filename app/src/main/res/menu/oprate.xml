@@ -6,5 +6,7 @@
     <item
             android:id="@+id/delete"
             android:title="粘贴到当前路径" />
-
+    <item
+            android:id="@+id/test"
+            android:title="测试" />
 </menu>

@@ -43,7 +43,7 @@
                         android:text="点击下方按钮开始录音"
                         android:layout_width="match_parent"
                         android:layout_height="wrap_content" android:id="@+id/textView4"
-                        android:textAlignment="center"/>
+                        android:textAlignment="center" android:background="#FFFFFF"/>
                 <LinearLayout
                         android:orientation="horizontal"
                         android:layout_width="match_parent"
@@ -55,7 +55,8 @@
                     <ImageButton
                             android:layout_width="wrap_content"
                             android:layout_height="match_parent" app:srcCompat="@mipmap/icon1"
-                            android:id="@+id/imageButton2" android:layout_weight="1" android:visibility="visible"/>
+                            android:id="@+id/imageButton2" android:layout_weight="1" android:visibility="visible"
+                    />
                     <ImageButton
                             android:layout_width="wrap_content"
                             android:layout_height="match_parent" app:srcCompat="@mipmap/icon2"

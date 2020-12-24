@@ -7,6 +7,8 @@ import android.widget.Toast;
 import androidx.appcompat.app.AppCompatActivity;
 import android.os.Bundle;
 
+import java.io.File;
+
 public class MainActivity2 extends AppCompatActivity implements View.OnClickListener {
 
     @Override
@@ -16,8 +18,7 @@ public class MainActivity2 extends AppCompatActivity implements View.OnClickList
         TextView text_location = findViewById(R.id.textView7);
         Button bt_back = findViewById(R.id.button_back);
         bt_back.setOnClickListener(this);
-        text_location.setText("/storage/emulated/0/MyFolder");
-
+        text_location.setText(getSharedPreferences("pathData",MODE_PRIVATE).getString("currentPath","defValue"));
 
     }
 
