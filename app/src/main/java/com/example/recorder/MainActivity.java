@@ -8,6 +8,7 @@ import android.content.Intent;
 import android.content.SharedPreferences;
 import android.content.pm.PackageManager;
 import android.graphics.BitmapFactory;
+import android.icu.util.LocaleData;
 import android.media.AudioManager;
 import android.media.MediaPlayer;
 import android.media.MediaRecorder;
@@ -394,6 +395,7 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
                 String   time   =   formatter.format(curDate);
                 audioFile = File.createTempFile(time, ".mp3", mypath);
                 mediaRecorder.setOutputFile(audioFile.getAbsolutePath());
+                Log.d("log","mypath:"+mypath.toString());
 
             } catch (IOException e) {
                 e.printStackTrace();

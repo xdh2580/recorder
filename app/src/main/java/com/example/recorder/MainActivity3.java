@@ -105,6 +105,7 @@ public class MainActivity3 extends AppCompatActivity {
             @Override
             public void onClick(View v) {
 
+
         //        String a = mListView.getAdapter().getItem(0).toString();
 
        //        Toast.makeText(MainActivity3.this,mMyListAdapter.currentDir.toString(),Toast.LENGTH_SHORT).show();
