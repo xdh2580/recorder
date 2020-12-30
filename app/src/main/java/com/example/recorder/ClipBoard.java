@@ -2,6 +2,7 @@ package com.example.recorder;
 
 import java.io.File;
 
+//自己设计的剪切板类
 public class ClipBoard {
 
     static final int COPYING=1;

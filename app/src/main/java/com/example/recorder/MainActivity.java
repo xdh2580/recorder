@@ -31,26 +31,21 @@ import java.util.List;
 
 public class MainActivity extends AppCompatActivity implements View.OnClickListener {
 
-
-    //test 分支测试测试
     public static final int UPDATE_LIST=1;
-    private Button bt_est;
+
+    private Button bt_start_on_service;
     private static ListView listView;
     private static ArrayAdapter<String> adapter;
     private TextView textView_hint;
 
-    public  static  MainActivity instance;
+    public  static  MainActivity instance;//用于给其他类获取这个activity的实例，在onCreate中返回，思路邪门但可行
 
     private MediaRecorder mediaRecorder = new MediaRecorder();
     private MediaPlayer mediaPlayer = new MediaPlayer();
-
     private File audioFile;
-    //  private   File path = new File("/storage/sdcard0/MyRecodingFile");
-    private   File path = new File("/data/data/com.example.recorder/cache/file/aaa");
-    private  File testFile = new File("/storage/emulated/0/mtklog/file_tree.txt");
-  //  private  File mypath =new File(getSharedPreferences("pathData",MODE_PRIVATE).getString("currentPath","defValue"));
-   private  File mypath;
-    private  static boolean isRecording;
+    private   File path = new File("/data/data/com.example.recorder/cache/file/aaa");//没啥用
+   private  File mypath;//当前定义的录音文件保存路径
+    private  static boolean isRecording;//MediaRecorder在录音时手动更改，记录当前录音状态
     private   NotificationManager manager;
     private ImageButton bt2;
 
@@ -83,6 +78,7 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
         }
     };
 
+
     private String formatTime(long seconds) {
         return String.format(" %02d:%02d", seconds / 60, seconds % 60);
     }
@@ -92,6 +88,7 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
         public  void handleMessage(Message msg){
             switch (msg.what){
                 case UPDATE_LIST:
+                    //重新装载一遍，达到刷新效果
                     files = mypath.listFiles();
                     fileList_string.clear();
                     fileList.clear();
@@ -104,7 +101,7 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
                         fileList_string.add(item.toString());
                     }
                     adapter.notifyDataSetChanged();
-             //       listView.setAdapter(adapter);
+
                     break;
                 default:
                     break;
@@ -117,6 +114,7 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
     protected void onResume() {
         super.onResume();
         mypath = new File(getSharedPreferences("pathData",MODE_PRIVATE).getString("currentPath","defValue"));
+        //更新listView
         Message message = new Message();
         message.what=UPDATE_LIST;
         handler.sendMessage(message);
@@ -127,7 +125,7 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
-        instance=this;
+        instance=this;//创建MainActivity实例时返回到静态属性中，便于其他类获取到该activity实例
 
         //第一次安装时默认根目录为存储路径，并写入到sharedPreferences
         if (getSharedPreferences("pathData",MODE_PRIVATE).getString("currentPath","defValue").equals("defValue")) {
@@ -135,36 +133,32 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
             editor.putString("currentPath", "/storage/emulated/0");
             editor.apply();
         }
+
+        //从sharedPreferences中读取设置的路径数据
         mypath = new File(getSharedPreferences("pathData",MODE_PRIVATE).getString("currentPath","defValue"));
         files = mypath.listFiles();
-//        initPlayer();
 
+//        尝试取消系统顶部Actionbar
 //        ActionBar actionBar = getSupportActionBar();
 //        if(actionBar!=null)
 //        actionBar.hide();
 //
 
+        //暂时用不到
         Intent intent = getIntent();
-        String isRe = intent.getStringExtra("nana");
-   //     Toast.makeText(this,isRe,Toast.LENGTH_SHORT).show();
-  //      Toast.makeText(this,String.valueOf(isRecording),Toast.LENGTH_SHORT).show();
-   //     if(isRe.equals("recoding"))
-   //         isRecording=true;
 
-//
+
+//复杂手段创建通知channel
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
             String channelId = "record";
             String channelName = "录音通知channel";
-            int importance = NotificationManager.IMPORTANCE_HIGH;
+            int importance = NotificationManager.IMPORTANCE_LOW;
             createNotificationChannel(channelId, channelName, importance);
 
         }
 
-     //   new Thread(new GameThread()).start();
 
-   //    boolean isDelete= path.delete();
-  //     String a = String.valueOf(isDelete);
-   //    Toast.makeText(MainActivity.this,a,Toast.LENGTH_SHORT).show();
+        //尝试递归删除文件夹，后搁置
    /*     try {
             deleteAllFlies(path);
         } catch (Exception e) {
@@ -176,29 +170,36 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
     */
         path.mkdirs();
 
+        //获得NotificationManager实例
         manager = (NotificationManager) getSystemService(Context.NOTIFICATION_SERVICE);
 
+//主界面最上方开启服务录音按钮
+        bt_start_on_service = (Button) findViewById(R.id.button_play);
 
-        bt_est = (Button) findViewById(R.id.button_play);
-
+        //"删除"按钮
         Button bt_del = (Button) findViewById(R.id.button_delete);
+        //下方三个imageButton，作用分别是打开文件预览，开始/结束录音，查看简单的配置信息
         ImageButton bt1 = (ImageButton) findViewById(R.id.imageButton);
         bt2 = (ImageButton) findViewById(R.id.imageButton2);
         ImageButton bt3 = (ImageButton) findViewById(R.id.imageButton3);
+
+        //显示录音文件的listView
         listView =findViewById(R.id.listview1);
+
+        //三个imageButton上方用于提示的textView，录音时会显示时长
         textView_hint=findViewById(R.id.textView4);
 
+        //往listView里填充数据
         for(File item:files){
             if(!item.isDirectory())
-            fileList.add(item);
+            fileList.add(item);//先把路径下的所有非目录文件放在fileList集合中
         }
         for(File item:files){
             if(!item.isDirectory())
-            fileList_string.add(item.toString());
+            fileList_string.add(item.toString());//在把fileList集合中的文件遍历保存到字符串集合fileList_string,用于放到ArrayAdapter
         }
-
+        //new一个ArrayAdapter，绑定子项布局与数据（该数据变动后listView自动刷新）
         adapter =new ArrayAdapter<String>(this,R.layout.list_item,fileList_string);
-
         adapter.notifyDataSetChanged();
         listView.setAdapter(adapter);
 
@@ -206,10 +207,12 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
         listView.setOnItemClickListener(new AdapterView.OnItemClickListener(){
             @Override
             public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
+
                 File fi = fileList.get(position);
 
+          //如果是.mp3文件，点击播放
           if(fi.toString().endsWith(".mp3")){
-                MediaPlayer mp =new MediaPlayer();
+                MediaPlayer mp =new MediaPlayer();//直接new一个新的MediaPlayer用于播放，可行但不太合理，暂时就这样
                 initPlayer(mp,fi);
                 goPlayer(mp);
             }else{
@@ -219,7 +222,8 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
             }
         });
 
-        bt_est.setOnClickListener(this);
+        //勿忘给按钮设置监听器
+        bt_start_on_service.setOnClickListener(this);
         bt_del.setOnClickListener(this);
         bt1.setOnClickListener(this);
         bt2.setOnClickListener(this);
@@ -247,6 +251,7 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
 
         }
 
+        //因为每次都是new新的player，这也就没什么用了
         mediaPlayer.setOnCompletionListener(new MediaPlayer.OnCompletionListener() {
             @Override
             public void onCompletion(MediaPlayer mediaPlayer) {
@@ -257,9 +262,8 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
             }
         });
 
-
-
     }
+
     @Override
     public void onDestroy()
     {
@@ -272,10 +276,12 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
             mediaRecorder = null;
         }
         super.onDestroy();
+        //关闭服务，否则前台服务还会继续运行
         Intent intent_stop_service = new Intent(this, MyService.class);
         stopService(intent_stop_service);
     }
 
+    //创建通知channel
     @TargetApi(Build.VERSION_CODES.O)
     private void createNotificationChannel(String channelId, String channelName, int importance) {
         NotificationChannel channel = new NotificationChannel(channelId, channelName, importance);
@@ -290,116 +296,79 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
     public void onClick(View v) {
         switch (v.getId()) {
             case R.id.imageButton:
-
+                //进入文件预览界面
                 Intent intent5 = new Intent(this,MainActivity3.class);
                 startActivity(intent5);
-//                Message message = new Message();
-//                message.what=UPDATE_TEST;
-//                handler.sendMessage(message);
-//               bt_est.setText("settings");
-
                 break;
+
             case R.id.imageButton2:
-
-
-
                 //开始或停止录音~~~
                 recorder_Media();
                 //发送通知~~~
                 if(isRecording==true){
                     Intent intent = new Intent(MainActivity.this, MainActivity.class);
+                    //加上如下两句可实现点击通知返回应用当前界面，原理暂未搞懂
                     intent.setAction(Intent.ACTION_MAIN);
                     intent.addCategory(Intent.CATEGORY_LAUNCHER);
-
-                    String isRecording_string = String.valueOf(isRecording);
-//                    Toast.makeText(this,isRecording_string,Toast.LENGTH_SHORT).show();
-                    //     intent.putExtra("nana","recoding");
+                    //构建pendingIntent
                     PendingIntent pendingIntent = PendingIntent.getActivity(this, 0, intent, 0);
                     //创建Notification，传入Context和channelId
                     Notification notification = new NotificationCompat.Builder(this, "record")
-                            .setAutoCancel(true)
+                            .setAutoCancel(true)//自动取消，点击通知进入界面后通知消失
                             .setContentTitle("recorder")
                             .setContentText("正在录音...")
                             .setWhen(System.currentTimeMillis())
                             .setSmallIcon(R.mipmap.ic_launcher)
                             .setLargeIcon(BitmapFactory.decodeResource(getResources(), R.mipmap.ic_launcher))
-                            .setAutoCancel(true)
                             .setContentIntent(pendingIntent)
                             //在build()方法之前还可以添加其他方法
                             .build();
                     manager.notify(1, notification);
                 }else{
+                    //录音结束后也取消通知
                     NotificationManager notificationManager = (NotificationManager) getSystemService(NOTIFICATION_SERVICE);
                     notificationManager.cancel(1);
                 }
-
-
                 break;
+
             case R.id.imageButton3:
-           //     Toast.makeText(MainActivity.this, "clicked bt3", Toast.LENGTH_SHORT).show();
+                //进入查看配置信息界面
                 Intent intent3 = new Intent(MainActivity.this,MainActivity2.class);
                 startActivity(intent3);
-
-//                try {
-//                    BufferedReader br = new BufferedReader(new FileReader(testFile.toString()));
-//                    String line1 = br.readLine();
-//                    Toast.makeText(MainActivity.this,line1.toString(), Toast.LENGTH_SHORT).show();
-//                } catch (IOException e) {
-//                    e.printStackTrace();
-//                }
-
                 break;
 
             case R.id.button_play:
-
+                //开启服务录音
                 Intent intent_start = new Intent(this,MyService.class);
                 startService(intent_start);
                 Toast.makeText(this, "have start service", Toast.LENGTH_SHORT).show();
-
-       /*      File  exdata = new File(Environment.getExternalStoragePublicDirectory("").getAbsolutePath());
-
-                //   File data = Environment.getDataDirectory();
-             Toast.makeText(MainActivity.this,exdata.toString(),Toast.LENGTH_SHORT).show();
-
-        */
-//                if (mediaPlayer.isPlaying()==false)
-//                    goPlayer(mediaPlayer);
-//                if (mediaPlayer.isPlaying()==true)
-//                    resetPlayer();
-
                 break;
+
             case R.id.button_delete:
+                //删除定义路径下的所有文件，不含文件夹
                 try {
-
                     deleteList(mypath);
-
                 } catch (Exception e) {
                     e.printStackTrace();
                 }
                 if(isRecording==false) {
-//                    Intent intent_re = new Intent(MainActivity.this, MainActivity.class);
-//                    intent_re.setAction(Intent.ACTION_MAIN);
-//                    intent_re.addCategory(Intent.CATEGORY_LAUNCHER);
-//                    startActivity(intent_re);
-        //            adapter.
+                    //删除后更新listView
                       Message message = new Message();
                       message.what=UPDATE_LIST;
                       handler.sendMessage(message);
-//                      adapter.notifyDataSetChanged();
-//                      listView.setAdapter(adapter);
                     Toast.makeText(MainActivity.this,"Deleted all", Toast.LENGTH_SHORT).show();
                 }else{
                     Toast.makeText(MainActivity.this,"正在录音，请先结束录制", Toast.LENGTH_SHORT).show();
                 }
-
                 break;
+
             default:
                 break;
         }
 
     }
 
-
+//初始化MediaRecorder
     public void initMediaRecorder(){
 
             try {
@@ -407,6 +376,7 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
                 //    audioFile = File.createTempFile("recording", ".mp3", path);
                 Date curDate =  new Date(System.currentTimeMillis());
                 String   time   =   formatter.format(curDate);
+                //audioFile以时间命名
                 audioFile = File.createTempFile(time, ".mp3", mypath);
                 mediaRecorder.setOutputFile(audioFile.getAbsolutePath());
                 Log.d("log","mypath:"+mypath.toString());
@@ -418,8 +388,9 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
             mediaRecorder.setOutputFormat(MediaRecorder.OutputFormat.THREE_GPP);
             mediaRecorder.setAudioEncoder(MediaRecorder.AudioEncoder.AMR_NB);
 
-
     }
+
+    //初始化Player
     public void initPlayer(MediaPlayer mediaPlayerNew,File file){
             try {
                 mediaPlayerNew.setDataSource(file.toString());
@@ -432,6 +403,7 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
 
 
     }
+    //暂时不能停止播放
     public void resetPlayer(){
             mediaPlayer.stop();
             Toast.makeText(MainActivity.this,"取消播放",Toast.LENGTH_SHORT).show();
@@ -439,10 +411,8 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
     }
 
 
-
+//init之后可开始播放音频
     public void goPlayer(MediaPlayer mediaPlayerNew){
-
-
         // 通过异步的方式装载媒体资源
         mediaPlayerNew.prepareAsync();
         mediaPlayerNew.setOnPreparedListener(new MediaPlayer.OnPreparedListener() {
@@ -455,43 +425,31 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
         });
     }
 
-    //开始
+    //开始或结束录音
     public void recorder_Media() {
-
         if (isRecording == true) {
-            //    mediaRecorder.pause();
+            //在录音就结束
             mediaRecorder.stop();
-  //          mediaRecorder.reset();
-    //        mediaRecorder.release();
             countDownTimer.cancel();
             textView_hint.setText("点击下方按钮开始录音");
             isRecording=false;
             bt2.setImageDrawable(getResources().getDrawable(R.mipmap.icon1));
             Message message = new Message();
             message.what=UPDATE_LIST;
-            handler.sendMessage(message);
+            handler.sendMessage(message);//刷新listview
             Toast.makeText(MainActivity.this, "结束录制,文件名：\n"+audioFile.getName()+"\n文件位置:\n"+mypath, Toast.LENGTH_LONG).show();
-//            Intent intent = new Intent(MainActivity.this,MainActivity.class);
-//            startActivity(intent);
+
         } else {
-            //    amplitude = new RecordAmplitude();
+            //不在录音就开始录
                  initMediaRecorder();
-
             try {
-
-            //    mediaRecorder.reset();
                 mediaRecorder.prepare();
                 mediaRecorder.start();
                 countDownTimer.start();
-
-
                 isRecording = true;
                 bt2.setImageDrawable(getResources().getDrawable(R.mipmap.icon5));
          //       Toast.makeText(MainActivity.this, "开始录制", Toast.LENGTH_SHORT).show();
          //       Toast.makeText(MainActivity.this, String.valueOf(isRecording), Toast.LENGTH_SHORT).show();
-
-                //        amplitude.execute();
-
             } catch (IOException e) {
                 e.printStackTrace();
             }
@@ -499,54 +457,13 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
 
     }
 
-//删除所有录音文件
+//删除所有listview中显示的文件，也即自定义保存路径下的非文件夹的所有文件，也会删除非mp3的文件
     protected void deleteList(File file){
-
         File[] files = file.listFiles();
         for(File item:files){
-//            if(item.toString().equals("/storage/emulated/0/MyFolder/mymusic.mp3"))
-//                continue;
             if(!item.isDirectory())
             item.delete();
         }
     }
-//        new Thread(new Runnable() {
-//            @Override
-//            public void run() {
-//                //耗时操作
-//                try {
-//                    Thread.sleep(3000);
-//                } catch (InterruptedException e) {
-//                    e.printStackTrace();
-//                }
-//                runOnUiThread(new Runnable() {
-//                    @Override
-//                    public void run() {
-//                        //更新界面
-//
-//
-//                    }
-//                });
-//            }
-//        }).start();
 
-
-//    class GameThread implements Runnable {
-//        public void run()
-//        {
-//            while (!Thread.currentThread().isInterrupted())
-//            {
-//                try
-//                {
-//                    Thread.sleep(100);
-//                }
-//                catch (InterruptedException e)
-//                {
-//                    Thread.currentThread().interrupt();
-//                }
-//                //使用postInvalidate可以直接在线程中更新界面
-//                .postInvalidate();
-//            }
-//        }
-//    }
 }

@@ -23,7 +23,7 @@ public class MyAdapter extends BaseAdapter{
 
     static List<File> fileList;   //创建一个File 类的对象 集合
     private LayoutInflater inflater;
-    File currentDir;
+    File currentDir;//记录当前listview所显示的文件所在的路径
 //    ArrayList<String> fileList_string = new ArrayList<String>();
 
 
@@ -56,10 +56,6 @@ public class MyAdapter extends BaseAdapter{
         //加载布局为一个视图
         final View view = inflater.inflate(R.layout.list2_item,null);
 
-//        //拟在此获得textview的引用以刷新，暂时搁置
-//        final View main3activity_layout =inflater.inflate(R.layout.activity_main3,null);
-//        final TextView tv_showDir = main3activity_layout.findViewById(R.id.textView_showDir);
-
 
          final File item = getItem(position);
          ImageView img = (ImageView) view.findViewById(R.id.imageView2);
@@ -72,7 +68,6 @@ public class MyAdapter extends BaseAdapter{
 
         String filepath=item.toString();
         String b = filepath.substring(filepath.lastIndexOf("/") + 1, filepath.length());
-
         tv_name.setText(b);
 
         tv_name.setOnClickListener(new View.OnClickListener() {
@@ -110,17 +105,6 @@ public class MyAdapter extends BaseAdapter{
                 showPopupMenu(v,item);
             }
         });
-//        StudentData mStudentData = (StudentData) getItem(position);
-//
-//        //在view 视图中查找 组件
-//        TextView tv_name = (TextView) view.findViewById(R.id.textView13);
-//        TextView tv_age = (TextView) view.findViewById(R.id.textView13);
-//        ImageView im_photo = (ImageView) view.findViewById(R.id.imageView2);
-//
-//        //为Item 里面的组件设置相应的数据
-//        tv_name.setText(mStudentData.getName());
-//        tv_age.setText("age: "+ mStudentData.getAge());
-//        im_photo.setImageResource(mStudentData.getPhoto());
 
         //返回含有数据的view
         return view;
@@ -139,12 +123,6 @@ public class MyAdapter extends BaseAdapter{
                     case "重命名":
                         if(!file.isDirectory()) {
 
-//                            File newFile = new File(currentDir.toString()+"/" + Math.random() + ".mp3");
-//                            Toast.makeText(view.getContext(), newFile.toString(), Toast.LENGTH_SHORT).show();
-//                            fileList.remove(file);
-//                            file.renameTo(newFile);
-//                            fileList.add(newFile);
-//                            notifyDataSetChanged();
                             final AlertDialog.Builder builder = new AlertDialog.Builder(inflater.getContext());
                             builder.setTitle("请输入文件名称");
                             final EditText editText =new EditText(inflater.getContext());

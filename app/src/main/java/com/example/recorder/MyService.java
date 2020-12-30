@@ -37,7 +37,7 @@ public class MyService extends Service {
     MediaRecorder mediaRecorder = new MediaRecorder();
     MyReceiver myReceiver ;
 
-    private MyBinder myBinder = new MyBinder();
+    private MyBinder myBinder = new MyBinder();//暂时没有使用绑定服务
 
 
     class MyBinder extends Binder{
@@ -116,6 +116,7 @@ public class MyService extends Service {
 //        PendingIntent pendingIntent3 = PendingIntent.getActivity(this,2,intent3,PendingIntent.FLAG_ONE_SHOT);
 //        remoteViews.setOnClickPendingIntent(R.id.button9,pendingIntent3);
 
+        //点击状态栏上的按钮，发送广播
         Intent intent_bro2 = new Intent(ACTION_RECORD);
         PendingIntent pendingIntent_bro2 = PendingIntent.getBroadcast(this,3,intent_bro2,0);
         remoteViews.setOnClickPendingIntent(R.id.button,pendingIntent_bro2);
@@ -147,7 +148,6 @@ public class MyService extends Service {
         startForeground(1,notification);
 
 //开始录音
-//        initMediaRecorder();//初始化
         recorder_Media();//开始录音
         TextView textView = MainActivity.instance.findViewById(R.id.textView4);
         textView.setText("录音中...");
@@ -170,15 +170,6 @@ public class MyService extends Service {
     public int onStartCommand(Intent intent, int flags, int startId) {
         Log.d("myLog","MyService->onStartCommand");
 
-
-//        Intent intent_rec = intent;
-//        String str_rec = intent_rec.getStringExtra("name2");
-//        if (str_rec!=null){
-//            Toast.makeText(this,"str_rec:"+str_rec,Toast.LENGTH_SHORT).show();
-//        }else{
-//            Toast.makeText(this,"str_rec:null",Toast.LENGTH_SHORT).show();
-//        }
-
         return super.onStartCommand(intent, flags, startId);
     }
 
@@ -190,10 +181,10 @@ public class MyService extends Service {
             mediaRecorder.stop();
             Log.d("MyLog", "mediaRecorder->stop()byDestroyService");
         }
-        stopForeground(true);
+        stopForeground(true);//关闭通知，否则程序退出通知还会继续存在
 
         if(myReceiver!=null){
-            unregisterReceiver(myReceiver);
+            unregisterReceiver(myReceiver);//注销广播接受器
         }
         super.onDestroy();
     }
@@ -225,20 +216,9 @@ public class MyService extends Service {
 
         try {
 
-            //    mediaRecorder.reset();
             mediaRecorder.prepare();
             mediaRecorder.start();
             isRcording=true;
-            Log.d("MyLog","mediaRecorder->start()");
-            //countDownTimer.start();
-
-            //isRecording = true;
-            //bt2.setImageDrawable(getResources().getDrawable(R.mipmap.icon5));
-
-            //       Toast.makeText(MainActivity.this, "开始录制", Toast.LENGTH_SHORT).show();
-            //       Toast.makeText(MainActivity.this, String.valueOf(isRecording), Toast.LENGTH_SHORT).show();
-
-            //        amplitude.execute();
 
         } catch (IOException e) {
             e.printStackTrace();
