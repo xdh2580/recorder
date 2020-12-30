@@ -88,13 +88,13 @@ public class MyAdapter extends BaseAdapter{
                     currentDir=item;
                     //textView更新
 //                    在此输出刷新后的textView的text，显示当前所在文件夹
-                    View activity_main3 = inflater.inflate(R.layout.activity_main3,null);//获得activity的layout的引用
+//                    View activity_main3 = inflater.inflate(R.layout.activity_main3,null);//获得activity的layout的引用
 //                    TextView textViewShowShow = activity_main3.findViewById(R.id.textView_showDir);//获得在该布局中的控件的引用,可以获得，但不能改内容
 //                    textViewShowShow.setText(currentDir.toString());//并不能直接改，下面发送Massage使用handler改
                     Message msg = new Message();
                     msg.what=1;
                     MainActivity3.instance.handler.sendMessage(msg);//获得MainActivity3的handler，并sendMassage
-                    Toast.makeText(view.getContext(),"success",Toast.LENGTH_SHORT).show();
+//                    Toast.makeText(view.getContext(),"success",Toast.LENGTH_SHORT).show();
 
            //         Toast.makeText(view.getContext(),"item:"+item.toString()+"\ncurrentDir:"+currentDir.toString(), Toast.LENGTH_SHORT).show();
                 }

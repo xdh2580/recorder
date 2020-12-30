@@ -39,6 +39,8 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
     private static ArrayAdapter<String> adapter;
     private TextView textView_hint;
 
+    public  static  MainActivity instance;
+
     private MediaRecorder mediaRecorder = new MediaRecorder();
     private MediaPlayer mediaPlayer = new MediaPlayer();
 
@@ -61,6 +63,7 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
 
 //计时
     private  CountDownTimer countDownTimer=new CountDownTimer(6000*100,100) {
+
         @Override
         public void onTick(long millisUntilFinished) {
 
@@ -70,6 +73,7 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
             //秒转化成 00:00形式二
             textView_hint.setText(formatTime((6000*100-millisUntilFinished) / 1000));
       //      Log.e("mills remain", millisUntilFinished + " ");
+
 
         }
 
@@ -84,7 +88,7 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
     }
 
     //handler刷新UI
-    private  Handler handler =new Handler(){
+    public   Handler handler =new Handler(){
         public  void handleMessage(Message msg){
             switch (msg.what){
                 case UPDATE_LIST:
@@ -123,6 +127,8 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
+        instance=this;
+
         //第一次安装时默认根目录为存储路径，并写入到sharedPreferences
         if (getSharedPreferences("pathData",MODE_PRIVATE).getString("currentPath","defValue").equals("defValue")) {
             SharedPreferences.Editor editor = getSharedPreferences("pathData", MODE_PRIVATE).edit();
@@ -266,6 +272,8 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
             mediaRecorder = null;
         }
         super.onDestroy();
+        Intent intent_stop_service = new Intent(this, MyService.class);
+        stopService(intent_stop_service);
     }
 
     @TargetApi(Build.VERSION_CODES.O)
@@ -343,6 +351,10 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
                 break;
 
             case R.id.button_play:
+
+                Intent intent_start = new Intent(this,MyService.class);
+                startService(intent_start);
+                Toast.makeText(this, "have start service", Toast.LENGTH_SHORT).show();
 
        /*      File  exdata = new File(Environment.getExternalStoragePublicDirectory("").getAbsolutePath());
 
@@ -471,6 +483,7 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
                 mediaRecorder.prepare();
                 mediaRecorder.start();
                 countDownTimer.start();
+
 
                 isRecording = true;
                 bt2.setImageDrawable(getResources().getDrawable(R.mipmap.icon5));
