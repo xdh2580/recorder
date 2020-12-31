@@ -12,7 +12,7 @@ import android.os.Bundle;
 import java.io.*;
 import java.util.ArrayList;
 import java.util.List;
-
+//文件预览界面，可实现很多文件操作
 public class MainActivity3 extends AppCompatActivity {
 
     private static ListView listView;
@@ -26,7 +26,7 @@ public class MainActivity3 extends AppCompatActivity {
     private ListView mListView;
     File[] files;
     TextView tv_showDir;
-    MyAdapter mMyListAdapter;
+    MyAdapter mMyListAdapter;//继承自baseAdapter实现自定义子项布局与数据填充，点击事件等
     List<File> fileList = new ArrayList<>();  //创建File对象集合,listview数据源
     //handler刷新UI
     public Handler handler =new Handler(){
@@ -59,20 +59,14 @@ public class MainActivity3 extends AppCompatActivity {
 
         //找到listview 组件
         mListView = (ListView) findViewById(R.id.listview2);
-        //创建Adapter 实例化对象， 调用构造函数传参，将数据和adapter  绑定
+        //创建Adapter 实例化对象， 调用构造函数传参，将数据（fileList）和adapter绑定
          mMyListAdapter = new MyAdapter(fileList,this);
         mListView.setAdapter(mMyListAdapter);   //将定义的adapter 和 listView 绑定
 
         tv_showDir=(TextView) findViewById(R.id.textView_showDir);
         tv_showDir.setText(mMyListAdapter.currentDir.toString());
-//        File[] filess =mypath.listFiles();
-//        File oldFile =filess[0].getAbsoluteFile();
-//
-//        File newFile = new File("/storage/emulated/0/MyFolder/myMusiccc.mp3");
-//
-//        boolean su = oldFile.renameTo(newFile);
-//        Toast.makeText(this,filess[0].getAbsoluteFile().toString(),Toast.LENGTH_SHORT).show();
 
+        //返回上一层
         bt_last=(Button) findViewById(R.id.button_last);
         bt_last.setOnClickListener(new View.OnClickListener() {
             @Override
@@ -80,7 +74,7 @@ public class MainActivity3 extends AppCompatActivity {
                 if (mMyListAdapter.currentDir.toString().equals("/storage/emulated/0"))
                     Toast.makeText(MainActivity3.this,"你已在手机存储根目录",Toast.LENGTH_SHORT).show();
                 else {
-                    //返回上一层并刷新listview
+                    //返回上一层并刷新listview，直接更新fileList便可刷新listView
                     File curpath = mMyListAdapter.currentDir;
                     File lastDir = curpath.getParentFile();
 
@@ -94,9 +88,7 @@ public class MainActivity3 extends AppCompatActivity {
 
                     //textView更新
                     tv_showDir.setText(mMyListAdapter.currentDir.toString());
-            //        Toast.makeText(MainActivity3.this,"fresh?",Toast.LENGTH_SHORT).show();
-//                    Toast.makeText(MainActivity3.this,"mMyListAdapter.currentDir:\n"+
-//                            mMyListAdapter.currentDir.toString()+"\nlastDir:\n"+lastDir.toString(),Toast.LENGTH_SHORT).show();
+
                 }
             }
         });
@@ -104,22 +96,12 @@ public class MainActivity3 extends AppCompatActivity {
         bt_operate.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-
-
-        //        String a = mListView.getAdapter().getItem(0).toString();
-
-       //        Toast.makeText(MainActivity3.this,mMyListAdapter.currentDir.toString(),Toast.LENGTH_SHORT).show();
-
-//                FileManage.changeCurrentPath(mMyListAdapter.currentDir);
-//                Toast.makeText(MainActivity3.this,String.valueOf(FileManage.changeCurrentPath(mMyListAdapter.currentDir)),Toast.LENGTH_SHORT).show();
                 showPopupMenu(bt_operate);
             }
         });
-
-
     }
 
-
+    //弹出子菜单
     private void showPopupMenu(View view) {
         // View当前PopupMenu显示的相对View的位置
         PopupMenu popupMenu = new PopupMenu(this, view);
@@ -143,8 +125,7 @@ public class MainActivity3 extends AppCompatActivity {
                             String dirOfClipFile = ClipBoard.currentFile.toString();
                             int temp = dirOfClipFile.lastIndexOf('/');
                             dirOfClipFile = dirOfClipFile.substring(0, temp);
-//                        Toast.makeText(MainActivity3.this,"dirOfClipFile:\n"+dirOfClipFile+
-//                                "\nmMyListAdapter.currentDir:\n"+mMyListAdapter.currentDir.toString(), Toast.LENGTH_SHORT).show();
+
                             if (!dirOfClipFile.equals(mMyListAdapter.currentDir.toString())) {
                                 if (!(ClipBoard.cutOrCopyState == ClipBoard.WAITING_FOR)) {
                                     switch (ClipBoard.cutOrCopyState) {
@@ -153,11 +134,12 @@ public class MainActivity3 extends AppCompatActivity {
                                             fileList.add(readyToCopy);
                                             mMyListAdapter.notifyDataSetChanged();
                                             File newFile = new File(mMyListAdapter.currentDir.toString() + "/" + readyToCopy.getName());
-                                            readyToCopy.renameTo(newFile);
+                                            readyToCopy.renameTo(newFile);//移动文件，就一个方法renameTo()
                                             ClipBoard.cutOrCopyState = ClipBoard.WAITING_FOR;
                                             Toast.makeText(MainActivity3.this, "移动成功", Toast.LENGTH_SHORT).show();
                                             break;
                                         case ClipBoard.COPYING:
+                                            //复制，要使用IO流
                                             File fileForCopy = new File(ClipBoard.currentFile.toString());
                                             File newFileOfCopy = new File(mMyListAdapter.currentDir.toString().concat("/" + ClipBoard.currentFile.getName()));
                                             try {
@@ -191,19 +173,6 @@ public class MainActivity3 extends AppCompatActivity {
                             Toast.makeText(MainActivity3.this, "没有选中文件", Toast.LENGTH_SHORT).show();
                         }
 
-//                        String currentPathFile_content_string = mMyListAdapter.currentDir.toString();
-//                        FileOutputStream out = null;
-//                        BufferedWriter writer = null;
-//                        try {
-//                            out = openFileOutput("path_file.txt",MODE_APPEND);
-//                            writer = new BufferedWriter(new  OutputStreamWriter(out));
-//                            writer.write("123445");
-//                            Toast.makeText(MainActivity3.this,currentPathFile_content_string,Toast.LENGTH_SHORT).show();
-//                        } catch (FileNotFoundException e) {
-//                            e.printStackTrace();
-//                        } catch (IOException e) {
-//                            e.printStackTrace();
-//                        }
                         break;
                     case "测试":
 

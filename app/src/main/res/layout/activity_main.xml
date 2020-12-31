@@ -23,7 +23,7 @@
                     android:layout_width="match_parent"
                     android:layout_height="match_parent" android:layout_weight="1">
                 <Button
-                        android:text="settings"
+                        android:text="使用通知栏服务并开始录音"
                         android:layout_width="match_parent"
                         android:layout_height="wrap_content" android:id="@+id/button_play"/>
                 <Button
