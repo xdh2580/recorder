@@ -125,8 +125,7 @@ public class MainActivity3 extends AppCompatActivity {
                             String dirOfClipFile = ClipBoard.currentFile.toString();
                             int temp = dirOfClipFile.lastIndexOf('/');
                             dirOfClipFile = dirOfClipFile.substring(0, temp);
-//                        Toast.makeText(MainActivity3.this,"dirOfClipFile:\n"+dirOfClipFile+
-//                                "\nmMyListAdapter.currentDir:\n"+mMyListAdapter.currentDir.toString(), Toast.LENGTH_SHORT).show();
+
                             if (!dirOfClipFile.equals(mMyListAdapter.currentDir.toString())) {
                                 if (!(ClipBoard.cutOrCopyState == ClipBoard.WAITING_FOR)) {
                                     switch (ClipBoard.cutOrCopyState) {
@@ -135,11 +134,12 @@ public class MainActivity3 extends AppCompatActivity {
                                             fileList.add(readyToCopy);
                                             mMyListAdapter.notifyDataSetChanged();
                                             File newFile = new File(mMyListAdapter.currentDir.toString() + "/" + readyToCopy.getName());
-                                            readyToCopy.renameTo(newFile);
+                                            readyToCopy.renameTo(newFile);//移动文件，就一个方法renameTo()
                                             ClipBoard.cutOrCopyState = ClipBoard.WAITING_FOR;
                                             Toast.makeText(MainActivity3.this, "移动成功", Toast.LENGTH_SHORT).show();
                                             break;
                                         case ClipBoard.COPYING:
+                                            //复制，要使用IO流
                                             File fileForCopy = new File(ClipBoard.currentFile.toString());
                                             File newFileOfCopy = new File(mMyListAdapter.currentDir.toString().concat("/" + ClipBoard.currentFile.getName()));
                                             try {
@@ -173,19 +173,6 @@ public class MainActivity3 extends AppCompatActivity {
                             Toast.makeText(MainActivity3.this, "没有选中文件", Toast.LENGTH_SHORT).show();
                         }
 
-//                        String currentPathFile_content_string = mMyListAdapter.currentDir.toString();
-//                        FileOutputStream out = null;
-//                        BufferedWriter writer = null;
-//                        try {
-//                            out = openFileOutput("path_file.txt",MODE_APPEND);
-//                            writer = new BufferedWriter(new  OutputStreamWriter(out));
-//                            writer.write("123445");
-//                            Toast.makeText(MainActivity3.this,currentPathFile_content_string,Toast.LENGTH_SHORT).show();
-//                        } catch (FileNotFoundException e) {
-//                            e.printStackTrace();
-//                        } catch (IOException e) {
-//                            e.printStackTrace();
-//                        }
                         break;
                     case "测试":
 
