@@ -370,7 +370,6 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
 
 //初始化MediaRecorder
     public void initMediaRecorder(){
-
             try {
                 SimpleDateFormat formatter   =   new   SimpleDateFormat   ("yyyyMMddHHmmss");
                 //    audioFile = File.createTempFile("recording", ".mp3", path);
@@ -398,10 +397,7 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
             } catch (IOException e) {
                 e.printStackTrace();
             }
-
             mediaPlayerNew.setAudioStreamType(AudioManager.STREAM_MUSIC);
-
-
     }
     //暂时不能停止播放
     public void resetPlayer(){
