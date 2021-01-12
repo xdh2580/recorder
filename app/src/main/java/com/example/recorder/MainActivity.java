@@ -119,6 +119,7 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
         message.what=UPDATE_LIST;
         handler.sendMessage(message);
 
+
     }
 
     @Override
@@ -127,10 +128,35 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
         setContentView(R.layout.activity_main);
         instance=this;//创建MainActivity实例时返回到静态属性中，便于其他类获取到该activity实例
 
+        //权限
+        if (ContextCompat.checkSelfPermission(MainActivity.this, Manifest.permission.RECORD_AUDIO)
+                != PackageManager.PERMISSION_GRANTED) {
+            ActivityCompat.requestPermissions(MainActivity.this, new String[]{Manifest.permission.RECORD_AUDIO}, 1);
+        } else {
+
+        }
+        if (ContextCompat.checkSelfPermission(MainActivity.this, Manifest.permission.READ_EXTERNAL_STORAGE)
+                != PackageManager.PERMISSION_GRANTED) {
+            ActivityCompat.requestPermissions(MainActivity.this, new String[]{Manifest.permission.READ_EXTERNAL_STORAGE}, 1);
+        } else {
+
+        }
+        if (ContextCompat.checkSelfPermission(MainActivity.this, Manifest.permission.WRITE_EXTERNAL_STORAGE)
+                != PackageManager.PERMISSION_GRANTED) {
+            ActivityCompat.requestPermissions(MainActivity.this, new String[]{Manifest.permission.WRITE_EXTERNAL_STORAGE}, 1);
+        } else {
+
+        }
+
+
+
+
+
         //第一次安装时默认根目录为存储路径，并写入到sharedPreferences
         if (getSharedPreferences("pathData",MODE_PRIVATE).getString("currentPath","defValue").equals("defValue")) {
             SharedPreferences.Editor editor = getSharedPreferences("pathData", MODE_PRIVATE).edit();
-            editor.putString("currentPath", "/storage/emulated/0");
+//            editor.putString("currentPath", "/storage/emulated/0");
+            editor.putString("currentPath",this.getExternalCacheDir().getAbsolutePath());
             editor.apply();
         }
 
@@ -231,25 +257,6 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
 
 
 
-        //权限
-        if (ContextCompat.checkSelfPermission(MainActivity.this, Manifest.permission.RECORD_AUDIO)
-                != PackageManager.PERMISSION_GRANTED) {
-            ActivityCompat.requestPermissions(MainActivity.this, new String[]{Manifest.permission.RECORD_AUDIO}, 1);
-        } else {
-
-        }
-        if (ContextCompat.checkSelfPermission(MainActivity.this, Manifest.permission.READ_EXTERNAL_STORAGE)
-                != PackageManager.PERMISSION_GRANTED) {
-            ActivityCompat.requestPermissions(MainActivity.this, new String[]{Manifest.permission.READ_EXTERNAL_STORAGE}, 1);
-        } else {
-
-        }
-        if (ContextCompat.checkSelfPermission(MainActivity.this, Manifest.permission.WRITE_EXTERNAL_STORAGE)
-                != PackageManager.PERMISSION_GRANTED) {
-            ActivityCompat.requestPermissions(MainActivity.this, new String[]{Manifest.permission.WRITE_EXTERNAL_STORAGE}, 1);
-        } else {
-
-        }
 
         //因为每次都是new新的player，这也就没什么用了
         mediaPlayer.setOnCompletionListener(new MediaPlayer.OnCompletionListener() {

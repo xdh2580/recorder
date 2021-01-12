@@ -71,7 +71,7 @@ public class MainActivity3 extends AppCompatActivity {
         bt_last.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                if (mMyListAdapter.currentDir.toString().equals("/storage/emulated/0"))
+                if (mMyListAdapter.currentDir.toString().equals(MainActivity3.this.getExternalCacheDir().getAbsolutePath()))
                     Toast.makeText(MainActivity3.this,"你已在手机存储根目录",Toast.LENGTH_SHORT).show();
                 else {
                     //返回上一层并刷新listview，直接更新fileList便可刷新listView
